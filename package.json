@@ -1,0 +1,18 @@
+{
+  "name": "real-estate-analyser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "jest --coverage --watchAll"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "moment": "^2.29.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
