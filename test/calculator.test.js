@@ -1,5 +1,6 @@
 const Loan = require('../src/calculator').Loan
 const Asset = require('../src/calculator').Asset
+const Variable = require('../src/calculator').Variable
 const Analyser = require('../src/calculator').Analyser
 
 beforeEach(() => {
@@ -109,6 +110,35 @@ describe('Class: Asset', () => {
 
 });
 
+describe('Class: Variable', () => {
+    describe('Given valid Variable parameters', () => {
+        let down = 4;
+        let income = 24000
+        let expense = 4152
+        let vacancy = 2000
+        let closingCost = 2;
+        
+        let variable = new Variable(down,income, expense,vacancy,closingCost)
+        test('Variable should initailize percent', () => {
+            expect(variable.getPercentDown()).toBe(.04);
+        });
+        test('Variable should initailize closing cost', () => {
+            expect(variable.getPercentClosingCost()).toBe(.02);
+        });
+        test('Variable should initailize income', () => {
+            expect(variable.getIncome()).toBe(income);
+        });
+        test('Variable should initailize vacancy', () => {
+            expect(variable.getVacancy()).toBe(vacancy);
+        });
+        test('Variable should initailize expense', () => {
+            expect(variable.getExpense()).toBe(expense);
+        });
+
+    });
+
+});
+
 describe('Class: Analyser', () => {
     let name = "301 indiana Ave";
     let negativeCost = 10000.0;
@@ -126,14 +156,12 @@ describe('Class: Analyser', () => {
     let expense = 4152
     let income = 24000
     let vacancy = 2000
+    let variable = new Variable(down,income, expense,vacancy,closingCost)
+
 
 
     describe('Given valid parameters', () => {
-        let validAnalysis = new Analyser(asset, validLoan, down, income, expense, vacancy, closingCost);
-        let expectedDown = .04
-        let expectedClosingClostPercentage = .02
-        let expectedIncome = 24000.0
-        let expectedExpense = 4152.0
+        let validAnalysis = new Analyser(asset, validLoan,variable);
         let expectedEGI = 22000
         let expectedNOI = 17848
         let expectedDebtService = 11825
@@ -144,29 +172,14 @@ describe('Class: Analyser', () => {
         let expectedcapital = 22728
         let expectedCashOnCash = .2650
 
-        test('getPercentDown() should retun valid downpayment float', () => {
-            expect(validAnalysis.getPercentDown()).toBe(expectedDown);
-        });
         test('calculateLeverage() should retun leverage', () => {
             expect(validAnalysis.calculateLeverage()).toBe(expectedLeverage);
-        });
-        test('getPercentClosingCost() should retun valid downpayment float', () => {
-            expect(validAnalysis.getPercentClosingCost()).toBe(expectedClosingClostPercentage);
         });
         test('getAsset() should retun valid asset object', () => {
             expect(validAnalysis.getAsset()).toBe(asset);
         });
         test('getLoan() should retun valid loan object', () => {
             expect(validAnalysis.getLoan()).toBe(validLoan);
-        });
-        test('getIncome() should retun valid Income value', () => {
-            expect(validAnalysis.getIncome()).toBe(expectedIncome);
-        });
-        test('getExpense() should retun valid Income value', () => {
-            expect(validAnalysis.getExpense()).toBe(expectedExpense);
-        });
-        test('getExpense() should retun valid Income value', () => {
-            expect(validAnalysis.getVacancy()).toBe(vacancy);
         });
         test('calculateEGI() should retun valid EGI', () => {
             expect(validAnalysis.calculateEGI()).toBe(expectedEGI);
@@ -198,8 +211,8 @@ describe('Class: Analyser', () => {
         test('calculatePrinciplePaydown() should retun correct value', () => {
             expect(validAnalysis.calculatePrinciplePaydown()[0]).toBe(3634.78);
             expect(validAnalysis.calculatePrinciplePaydown()[29]).toBe(11572.36);
-        });      
-          test('calculateNonApreciatedEquity() should retun array size of 30', () => {
+        });
+        test('calculateNonApreciatedEquity() should retun array size of 30', () => {
             expect(validAnalysis.calculateNonApreciatedEquity().length).toBe(30);
         });
 
@@ -211,13 +224,13 @@ describe('Class: Analyser', () => {
 
     describe('Given valid attributes', () => {
         let validAnalysis = new Analyser();
-        validAnalysis.setPercentDown(down);
+        validAnalysis.setVariable(variable);
         validAnalysis.setLoan(validLoan);
         validAnalysis.setAsset(asset);
         let expectedDown = .04
 
         test('getPercentDown() should retun valid downpayment float', () => {
-            expect(validAnalysis.getPercentDown()).toBe(expectedDown);
+            expect(validAnalysis.getVariable()).toBe(variable);
         });
         test('getAsset() should retun valid asset object', () => {
             expect(validAnalysis.getAsset()).toBe(asset);
