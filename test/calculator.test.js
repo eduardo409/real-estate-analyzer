@@ -12,45 +12,21 @@ afterEach(() => {
 describe('Class: Loan', () => {
 
     var validApr = 3.5;
-    var validPrinciple = 100000;
     var validTerm = 30;
-    const YEARLY_PAYMENT_FREQUENCY = 12
-    let expectedPrinciple = 100000;
     let expectedApr = 0.035;
     let expectedTerm = 30;
-    let expectedInterestCost = "61656.088";
-    let expectedTotalNumberOfPayments = expectedTerm * YEARLY_PAYMENT_FREQUENCY;
-    let validLoan = new Loan(validPrinciple, validApr, validTerm);
-    let expectedRatePerperiod = expectedApr / YEARLY_PAYMENT_FREQUENCY;
-    let validStringLoan = new Loan("100000", "3.5", "30");
+    let validLoan = new Loan(validApr, validTerm);
+    let validStringLoan = new Loan( "3.5", "30");
 
     describe('Given a valid apr, principle and term', () => {
-        test('getInitialPrincipal() should return valid value', () => {
-            expect(validLoan.getInitialPrincipal()).toBe(expectedPrinciple);
-        });
         test('getInterestRate() should return valid value', () => {
             expect(validLoan.getInterestRate()).toBe(expectedApr);
         });
         test('getTermInYears() should retun valid value', () => {
             expect(validLoan.getTermInYears()).toBe(expectedTerm);
         });
-        test('calTotalNumberOfPayments() should retun valid value', () => {
-            expect(validLoan.calTotalNumberOfPayments()).toBe(expectedTotalNumberOfPayments);
-        });
-        test('calRatePerPeriod() should retun valid value', () => {
-            expect(validLoan.calRatePerPeriod()).toBe(expectedRatePerperiod);
-        });
-        test('calSchedule() should retun valid size', () => {
-            expect(validLoan.calSchedule().length).toBe(expectedTotalNumberOfPayments);
-        });
-        test('calSchedule() should retun valid interest costs', () => {
-            expect(validLoan.calSchedule().slice(-1)[0].totalInterest).toBe(expectedInterestCost);
-        });
     });
     describe('Given a valid string apr, string principle and string term', () => {
-        test('getInitialPrincipal() should return valid value', () => {
-            expect(validStringLoan.getInitialPrincipal()).toBe(expectedPrinciple);
-        });
         test('getInterestRate() should return valid value', () => {
             expect(validStringLoan.getInterestRate()).toBe(expectedApr);
         });
@@ -147,9 +123,8 @@ describe('Class: Analyser', () => {
     const asset = new Asset(name, negativeCost, squareFt, value)
 
     var validApr = 4;
-    var validPrinciple = 206400;
     var validTerm = 30;
-    let validLoan = new Loan(validPrinciple, validApr, validTerm);
+    let validLoan = new Loan(validApr, validTerm);
 
     let down = 4;
     let closingCost = 2;
@@ -162,6 +137,9 @@ describe('Class: Analyser', () => {
 
     describe('Given valid parameters', () => {
         let validAnalysis = new Analyser(asset, validLoan,variable);
+        let expectedRatePerperiod = 0.0033333333333333335
+        let expectedTotalNumberOfPayments = 360
+        let expectedInterestCost = "148338.661";
         let expectedEGI = 22000
         let expectedNOI = 17848
         let expectedDebtService = 11825
@@ -171,7 +149,18 @@ describe('Class: Analyser', () => {
         let expectedClosingClostValue = 4128
         let expectedcapital = 22728
         let expectedCashOnCash = .2650
-
+        test('calculateTotalNumberOfPayments() should retun valid value', () => {
+            expect(validAnalysis.calculateTotalNumberOfPayments()).toBe(expectedTotalNumberOfPayments);
+        });
+        test('calculateRatePerPeriod() should retun valid value', () => {
+            expect(validAnalysis.calculateRatePerPeriod()).toBe(expectedRatePerperiod);
+        });
+        test('calculateSchedule() should retun valid size', () => {
+            expect(validAnalysis.calculateSchedule().length).toBe(expectedTotalNumberOfPayments);
+        });
+        test('calculateSchedule() should retun valid interest costs', () => {
+            expect(validAnalysis.calculateSchedule().slice(-1)[0].totalInterest).toBe(expectedInterestCost);
+        });
         test('calculateLeverage() should retun leverage', () => {
             expect(validAnalysis.calculateLeverage()).toBe(expectedLeverage);
         });
@@ -183,6 +172,7 @@ describe('Class: Analyser', () => {
         });
         test('calculateEGI() should retun valid EGI', () => {
             expect(validAnalysis.calculateEGI()).toBe(expectedEGI);
+            console.log(expectedEGI)
         });
         test('calculateNOI() should retun valid EGI', () => {
             expect(validAnalysis.calculateNOI()).toBe(expectedNOI);
@@ -227,7 +217,6 @@ describe('Class: Analyser', () => {
         validAnalysis.setVariable(variable);
         validAnalysis.setLoan(validLoan);
         validAnalysis.setAsset(asset);
-        let expectedDown = .04
 
         test('getPercentDown() should retun valid downpayment float', () => {
             expect(validAnalysis.getVariable()).toBe(variable);

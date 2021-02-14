@@ -36,59 +36,24 @@ class Asset {
 
 }
 class Loan {
-    constructor(p, r, t) {
-        this._initialPrincipal;
-        this._interestRate;
-        this._termInYears;
+    constructor(r, t) {
+        this.interestRate;
+        this.termInYears;
         // date of first payment
-        this._firstPayment;
+        this.firstPayment;
 
-        this.setInitialPrincipal(p);
         this.setInterestRate(r);
         this.setTermInYears(t)
     }
-    getInitialPrincipal() { return this._initialPrincipal };
-    getInterestRate() { return this._interestRate };
-    getTermInYears() { return this._termInYears };
-    getFirstPayment() { return this._firstPayment };
-    getPaymentFrequency() { return this._paymentFrequency };
+    getInterestRate() { return this.interestRate };
+    getTermInYears() { return this.termInYears };
+    getFirstPayment() { return this.firstPayment };
+    getPaymentFrequency() { return this.paymentFrequency };
 
-    setInitialPrincipal(value) { this._initialPrincipal = parseFloat(value) };
-    setInterestRate(value) { this._interestRate = parseFloat(value) / 100 };
-    setTermInYears(value) { this._termInYears = parseInt(value) };
-    setfirstPayment(value) { this._firstPayment = moment(value) }
-    setPaymentFrequency(value) { this._paymentFrequency = value }
-
-    // Amortization formula can be found here: https://www.vertex42.com/ExcelArticles/amortization-calculation.html
-    calTotalNumberOfPayments() { return this._termInYears * 12; }
-    calRatePerPeriod() { return this._interestRate / 12; }
-    calPaymentAmountPerPeriod() {
-        let r = this.calRatePerPeriod()
-        let n = this.calTotalNumberOfPayments()
-        let pow = Math.pow(1 + r, n)
-        return this._initialPrincipal * (r * pow) / (pow - 1);
-    }
-
-    calSchedule() {
-        let numberOfPayments = this.calTotalNumberOfPayments();
-        let paymentAmountPerPeriod = this.calPaymentAmountPerPeriod();
-        let ratePerPeriod = this.calRatePerPeriod()
-        let schedule = [];
-        var balance = this._initialPrincipal;
-        var totalInterest = 0
-        for (let i = 0; i < numberOfPayments; i++) {
-            let interest = balance * ratePerPeriod;
-            let principle = paymentAmountPerPeriod - interest
-            balance = balance - principle;
-            totalInterest = totalInterest + interest;
-            let dto = new ScheduleDTO(i, paymentAmountPerPeriod.toFixed(3), interest.toFixed(3), principle.toFixed(3), balance.toFixed(3), totalInterest.toFixed(3));
-            schedule.push(dto);
-
-        }
-
-        return schedule;
-
-    }
+    setInterestRate(value) { this.interestRate = parseFloat(value) / 100 };
+    setTermInYears(value) { this.termInYears = parseInt(value) };
+    setfirstPayment(value) { this.firstPayment = moment(value) }
+    setPaymentFrequency(value) { this.paymentFrequency = value }
 }
 
 class Variable {
@@ -134,8 +99,38 @@ class Analyser {
 
     setLoan(value) { this.loan = value };
     setAsset(value) { this.asset = value };
-    setVariable(value){this.variable = value}
+    setVariable(value) { this.variable = value }
 
+    // Amortization formula can be found here: https://www.vertex42.com/ExcelArticles/amortization-calculation.html
+    calculateTotalNumberOfPayments() { return this.getLoan().getTermInYears() * 12; }
+    calculateRatePerPeriod() { return this.getLoan().getInterestRate() / 12; }
+    calculatePaymentAmountPerPeriod() {
+        let r = this.calculateRatePerPeriod()
+        let n = this.calculateTotalNumberOfPayments()
+        let pow = Math.pow(1 + r, n)
+        return this.calculateLeverage() * (r * pow) / (pow - 1);
+    }
+    // calculate schedule 
+    calculateSchedule() {
+        let numberOfPayments = this.calculateTotalNumberOfPayments();
+        let paymentAmountPerPeriod = this.calculatePaymentAmountPerPeriod();
+        let ratePerPeriod = this.calculateRatePerPeriod()
+        let schedule = [];
+        var balance = this.calculateLeverage();
+        var totalInterest = 0
+        for (let i = 0; i < numberOfPayments; i++) {
+            let interest = balance * ratePerPeriod;
+            let principle = paymentAmountPerPeriod - interest
+            balance = balance - principle;
+            totalInterest = totalInterest + interest;
+            let dto = new ScheduleDTO(i, paymentAmountPerPeriod.toFixed(3), interest.toFixed(3), principle.toFixed(3), balance.toFixed(3), totalInterest.toFixed(3));
+            schedule.push(dto);
+
+        }
+
+        return schedule;
+
+    }
 
     // downpayment value: downPercentage * assetValue
     calculateDownPayment() { return this.getVariable().getPercentDown() * this.getAsset().getValue() }
@@ -152,7 +147,7 @@ class Analyser {
     // Calculate Net Operating Income: EffectiveGrossincome - expenses
     calculateNOI() { return this.calculateEGI() - this.getVariable().getExpense() };
     // rounded up yearly debt service:  PaymentAmountPerPeriod * 12
-    calculateDebtService() { return Math.ceil(this.getLoan().calPaymentAmountPerPeriod() * 12) }
+    calculateDebtService() { return Math.ceil(this.calculatePaymentAmountPerPeriod() * 12) }
     // calculate cashflow
     calculateCashFlow() { return this.calculateNOI() - this.calculateDebtService() }
     // calculate cash on cash percentage: TotalCapitalRequired / CashFlow
@@ -163,11 +158,11 @@ class Analyser {
      * element [0] = year 1 principle paydown
      */
     calculatePrinciplePaydown() {
-        let schedule = this.getLoan().calSchedule().map(period => parseFloat(period.principle));
+        let schedule = this.calculateSchedule().map(period => parseFloat(period.principle));
         let paydown = [];
         let sum = 0;
         let counter = 0;
-        for (let i = 0; i < this.getLoan().calSchedule().length; i++) {
+        for (let i = 0; i < this.calculateSchedule().length; i++) {
             sum = sum + schedule[i]
             counter++
             if (counter == 12) {
